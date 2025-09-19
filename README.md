@@ -18,6 +18,7 @@
 
 
 🔗 **Live Demo:** [https://talk-like-a-pirate-day.xyz](https://talk-like-a-pirate-day.xyz)
+> **Note:** 이 데모는 Render의 무료 플랜으로 배포되었습니다. 일정 시간 접속이 없으면 서버가 잠자기 모드(spin down)로 전환되어, **첫 방문 시 약 50초 이상의 로딩 지연이 발생할 수 있습니다.** 잠시만 기다려주시면 정상적으로 접속됩니다.
 ---
 
 ## ⚠️ 안내
