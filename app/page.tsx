@@ -1,103 +1,178 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useState, useEffect, useMemo } from "react";
+
+const KO_MESSAGES = {
+  PLACEHOLDERS: [
+    "여기에 문장을 입력하시오, 동료!",
+    "문장을 입력하게나!",
+    "자, 이제 말을 해보게나!",
+    "무슨 말을 하고 싶은가, 친구여?",
+    "이제 네 차례다, 선원아!",
+  ],
+  EMPTY_INPUT: "번역할 내용을 입력하시오, 이 게으른 선원아!",
+  LOADING: "번역 중... Arrr!",
+  TRANSLATE_BUTTON: "해적이 되어라!",
+  TRANSLATED_TITLE: "해적의 말로 바꾸면!",
+  ERROR: "이런! 풍랑을 만났소. 번역에 실패했다오.",
+  SERVER_ERROR: "배에 문제가 생겼다! 서버가 응답하지 않소.",
+};
+
+const EN_MESSAGES = {
+  PLACEHOLDERS: [
+    "Here, enter a sentence, matey!",
+    "Enter a sentence, ye scallywag!",
+    "Now, speak up, ye landlubber!",
+    "What be ye wantin' to say, friend?",
+    "Now, it's yer turn, matey!",
+    "What be on yer mind, bucko?",
+  ],
+  EMPTY_INPUT: "Arrr! Ye need to enter somethin' to translate, ye lazy sailor!",
+  LOADING: "Chartin' the course...",
+  TRANSLATE_BUTTON: "Make it Pirate!",
+  TRANSLATED_TITLE: "Here Be Yer Words!",
+  ERROR: "Blimey! We've hit rough seas. Translation failed.",
+  SERVER_ERROR:
+    "Arrr! There be a problem with the ship! The server be not respondin'.",
+};
+
+export default function HomePage() {
+  const [language, setLanguage] = useState("ko");
+  const MESSAGES = language === "ko" ? KO_MESSAGES : EN_MESSAGES;
+  const [text, setText] = useState("");
+  const [translation, setTranslation] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [isTooltipHover, setIsTooltipHover] = useState(false);
+
+  const randomPlaceholder = useMemo(() => {
+    const randomIndex = Math.floor(
+      Math.random() * MESSAGES.PLACEHOLDERS.length
+    );
+    return MESSAGES.PLACEHOLDERS[randomIndex];
+  }, [language]);
+
+  const handleLanguageToggle = () => {
+    setLanguage((prevLang) => (prevLang === "ko" ? "en" : "ko"));
+  };
+
+  const handleTranslate = async () => {
+    if (!text.trim()) {
+      setTranslation(MESSAGES.EMPTY_INPUT);
+      return;
+    }
+
+    setIsLoading(true);
+    setTranslation(""); // 로딩 시작 시 이전 번역 결과 초기화
+
+    try {
+      const response = await fetch("/api/translate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text }),
+      });
+
+      if (!response.ok) {
+        throw new Error(MESSAGES.SERVER_ERROR);
+      }
+
+      const data = await response.json();
+      setTranslation(data.translation || MESSAGES.ERROR);
+    } catch (error) {
+      console.error("번역 중 오류 발생:", error);
+      setTranslation(MESSAGES.ERROR);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <main className="flex flex-col flex-grow items-center justify-center bg-[#F3EAC5] text-[#4A2C2A] p-4 font-serif">
+      <div className="flex flex-col w-full max-w-2xl text-center gap-6">
+        <div className="flex justify-end gap-4">
+          <button
+            onClick={() => setLanguage("ko")}
+            className={`px-4 py-2 rounded-lg transition-all ${
+              language === "ko"
+                ? "bg-[#8B4513] text-white shadow-lg"
+                : "bg-[#D1C6A4] text-[#6B5B3B] hover:bg-opacity-80"
+            }`}
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+            한국어
+          </button>
+          <button
+            onClick={() => setLanguage("en")}
+            className={`px-4 py-2 rounded-lg transition-all ${
+              language === "en"
+                ? "bg-[#8B4513] text-white shadow-lg"
+                : "bg-[#D1C6A4] text-[#6B5B3B] hover:bg-opacity-80"
+            }`}
           >
-            Read our docs
-          </a>
+            English
+          </button>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+        <header className="relative flex w-full">
+          <div className="flex flex-1 justify-center">
+            <h1 className="title-en text-5xl font-bold">
+              Talk Like a Pirate Day
+            </h1>
+          </div>
+
+          <img
+            src={"/assets/Tooltip.png"}
+            className="absolute right-0 top-0 w-[48px] h-[48px]"
+            onMouseOver={() => {
+              setIsTooltipHover(true);
+            }}
+            onMouseOut={() => {
+              setIsTooltipHover(false);
+            }}
+          ></img>
+
+          {isTooltipHover && (
+            <div className="absolute z-10 top-[-75%] left-[102%] w-max border-2 border-[#8B4513] rounded-lg p-4 bg-[#FFF8DC] whitespace-pre-wrap">
+              {language === "ko"
+                ? `구글 제미나이 API 무료 등급 사용 중
+최대 분당 요청 수 - 15
+최대 분당 입력 토큰 수 - 250,000
+최대 일일 요청 수 - 1,000`
+                : `Using Google Gemini API free tier
+Requests Per Minute - 15
+Tokens Per Minute - 250,000
+Requests Per Day - 1,000`}
+            </div>
+          )}
+        </header>
+
+        <textarea
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder={randomPlaceholder}
+          suppressHydrationWarning={true}
+          disabled={isLoading}
+          className="w-full h-40 p-4 bg-[#FFF8DC] border-2 border-[#8B4513] rounded-lg shadow-inner resize-none focus:ring-2 focus:ring-[#CD853F] focus:outline-none transition"
+        />
+
+        <button
+          className="bg-[#CD853F] text-white px-8 py-3 rounded-lg text-xl font-bold shadow-md hover:bg-[#A0522D] transform hover:-translate-y-1 transition-all duration-200 disabled:bg-gray-500 disabled:cursor-not-allowed flex items-center justify-center min-w-[180px] min-h-[56px]"
+          onClick={handleTranslate}
+          disabled={isLoading}
         >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+          {isLoading ? (
+            // 로딩 중일 때 돌아가는 스핀 아이콘
+            <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-white"></div>
+          ) : (
+            // 로딩 중이 아닐 때 번역하기 텍스트
+            MESSAGES.TRANSLATE_BUTTON
+          )}
+        </button>
+
+        {translation && (
+          <section className="bg-[#FFF8DC] p-6 rounded-lg shadow-md border border-[#8B4513] ">
+            <h2 className="text-2xl font-bold">{MESSAGES.TRANSLATED_TITLE}</h2>
+            <p className="mt-4 text-lg whitespace-pre-wrap">{translation}</p>
+          </section>
+        )}
+      </div>
+    </main>
   );
 }
