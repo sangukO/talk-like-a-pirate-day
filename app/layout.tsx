@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import Footer from "./components/footer";
 import GoogleAnalytics from "./components/GoogleAnalytics";
+import { Suspense } from "react";
 
 export const metadata: Metadata = {
   title: "TLaPD Translator",
@@ -21,7 +22,9 @@ export default function RootLayout({
           url('https://fonts.googleapis.com/css2?family=Pirata+One&display=swap');
         </style>
       </head>
-      {process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID && <GoogleAnalytics />}
+      <Suspense fallback={null}>
+        {process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID && <GoogleAnalytics />}
+      </Suspense>
       <body className={`flex flex-col min-h-screen`}>
         <div className="mt-[10%] flex-grow">{children}</div>
         <Footer />
